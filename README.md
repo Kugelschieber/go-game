@@ -3,6 +3,16 @@
 Game engine written in Go using OpenGL and GLFW.
 **Under heavy development, do not use yet!**
 
+## Install
+
+```
+go get github.com/DeKugelschieber/go-game
+```
+
+## Usage
+
+*WIP*
+
 ## Dependencies
 
 * https://github.com/go-gl/gl
