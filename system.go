@@ -4,11 +4,15 @@ import ()
 
 // A system provides logic for actors satisfying required components.
 // They are automatically updated on each frame.
+// When a system is removed from systems, the Cleanup() method will be called.
+// This will also happen on program stop. This can be used to cleanup open resources
+// (like GL objects).
 type System interface {
 	Update(float64)
-	Add(actor *Actor) bool
-	Remove(actor *Actor) bool
-	RemoveById(id ActorId) bool
+	Cleanup()
+	Add(*Actor) bool
+	Remove(*Actor) bool
+	RemoveById(ActorId) bool
 	RemoveAll()
 	Len() int
 	GetName() string
@@ -37,6 +41,7 @@ func AddSystem(system System) bool {
 func RemoveSystem(system System) bool {
 	for i, sys := range systems {
 		if sys == system {
+			sys.Cleanup()
 			systems = append(systems[:i], systems[i+1:]...)
 			return true
 		}
@@ -47,6 +52,10 @@ func RemoveSystem(system System) bool {
 
 // Removes all systems.
 func RemoveAllSystems() {
+	for _, system := range systems {
+		system.Cleanup()
+	}
+
 	systems = make([]System, 0)
 }
 

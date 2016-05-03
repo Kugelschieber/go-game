@@ -67,6 +67,7 @@ func Run(game Game, options *RunOptions) {
 
 	for running {
 		if exitOnClose && wnd.ShouldClose() {
+			cleanup()
 			return
 		}
 
@@ -86,4 +87,10 @@ func Run(game Game, options *RunOptions) {
 // Stops the game and closes the window.
 func Stop() {
 	running = false
+}
+
+func cleanup() {
+	for _, system := range systems {
+		system.Cleanup()
+	}
 }
