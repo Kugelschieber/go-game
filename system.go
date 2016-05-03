@@ -5,7 +5,7 @@ import ()
 // A system provides logic for actors satisfying required components.
 // They are automatically updated on each frame.
 // When a system is removed from systems, the Cleanup() method will be called.
-// This will also happen on program stop. This can be used to cleanup open resources
+// This will also happen on program stop. It can be used to cleanup open resources
 // (like GL objects).
 type System interface {
 	Update(float64)

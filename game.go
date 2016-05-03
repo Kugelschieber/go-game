@@ -90,6 +90,12 @@ func Stop() {
 }
 
 func cleanup() {
+	// cleanup scenes
+	for _, scene := range scenes {
+		scene.Cleanup()
+	}
+
+	// cleanup systems
 	for _, system := range systems {
 		system.Cleanup()
 	}
