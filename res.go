@@ -10,38 +10,26 @@ import (
 // A generic resource.
 // Must be cast to appropriate type.
 // The name is the file name and must be unique.
-type Res struct {
-	name string
-	path string
-	ext  string
-}
-
-// Returns the file name of actual resource.
-func (r *Res) GetName() string {
-	return r.name
-}
-
-// Returns the file path (as passed in) of actual resource.
-func (r *Res) GetPath() string {
-	return r.path
-}
-
-// Returns the file extension of actual resource.
-func (r *Res) GetExt() string {
-	return r.ext
+type Res interface {
+	GetName() string
+	SetName(string)
+	GetPath() string
+	SetPath(string)
+	GetExt() string
+	SetExt(string)
 }
 
 // Resource loader interface.
 // The loader accepts files by file extension.
 // and loads them if accepted.
 type ResLoader interface {
-	Load(string) (*Res, error)
+	Load(string) (Res, error)
 	Ext() string
 }
 
 var (
 	resloader []ResLoader
-	resources []*Res
+	resources []Res
 )
 
 // Adds a loader.
@@ -110,8 +98,15 @@ func GetLoaderByExt(ext string) ResLoader {
 // Loads a resource by file path.
 // If no loader is present for given file, an error will be returned.
 // If the loader fails to load the resource, an error will be returned.
-func LoadRes(path string) (*Res, error) {
+// If the resource name exists already, an error AND the resource will be returned.
+// This is allows to cleanup on failure.
+func LoadRes(path string) (Res, error) {
 	ext := filepath.Ext(path)
+
+	if len(ext) > 0 {
+		ext = ext[1:]
+	}
+
 	loader := GetLoaderByExt(ext)
 
 	if loader == nil {
@@ -124,9 +119,13 @@ func LoadRes(path string) (*Res, error) {
 		return nil, err
 	}
 
+	res.SetName(filepath.Base(path))
+	res.SetPath(path)
+	res.SetExt(ext)
+
 	for _, r := range resources {
-		if r.name == res.name {
-			return nil, errors.New("Resource with file name " + res.name + " exists already")
+		if r.GetName() == res.GetName() {
+			return res, errors.New("Resource with file name " + res.GetName() + " exists already")
 		}
 	}
 
@@ -159,9 +158,9 @@ func LoadResFromFolder(path string) error {
 }
 
 // Returns a resource by name or nil, if not found.
-func GetResByName(name string) *Res {
+func GetResByName(name string) Res {
 	for _, r := range resources {
-		if r.name == name {
+		if r.GetName() == name {
 			return r
 		}
 	}
@@ -170,9 +169,9 @@ func GetResByName(name string) *Res {
 }
 
 // Returns a resource by path or nil, if not found.
-func GetResByPath(path string) *Res {
+func GetResByPath(path string) Res {
 	for _, r := range resources {
-		if r.path == path {
+		if r.GetPath() == path {
 			return r
 		}
 	}
@@ -184,7 +183,7 @@ func GetResByPath(path string) *Res {
 // Returns false if resource could not be found.
 func RemoveResByName(name string) bool {
 	for i, r := range resources {
-		if r.name == name {
+		if r.GetName() == name {
 			resources = append(resources[:i], resources[i+1:]...)
 			return true
 		}
@@ -197,7 +196,7 @@ func RemoveResByName(name string) bool {
 // Returns false if resource could not be found.
 func RemoveResByPath(path string) bool {
 	for i, r := range resources {
-		if r.path == path {
+		if r.GetPath() == path {
 			resources = append(resources[:i], resources[i+1:]...)
 			return true
 		}
@@ -208,5 +207,5 @@ func RemoveResByPath(path string) bool {
 
 // Removes all resources.
 func RemoveAllRes() {
-	resources = make([]*Res, 0)
+	resources = make([]Res, 0)
 }

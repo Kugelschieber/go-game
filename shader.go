@@ -1,8 +1,7 @@
-package gl
+package goga
 
 import (
 	"errors"
-	"geo"
 	"github.com/go-gl/gl/v4.5-core/gl"
 	"strings"
 )
@@ -277,7 +276,7 @@ func (s *Shader) SendUniform4x3(name string, data *float32, count int32, transpo
 	gl.UniformMatrix4x3fv(s.GetUniformLocation(name), count, transpose, data)
 }
 
-func (s *Shader) SendMat3(name string, m geo.Mat3) {
+func (s *Shader) SendMat3(name string, m Mat3) {
 	var data [9]float32
 
 	for i := 0; i < 9; i++ {
@@ -287,7 +286,7 @@ func (s *Shader) SendMat3(name string, m geo.Mat3) {
 	gl.UniformMatrix3fv(s.GetUniformLocation(name), 1, false, &data[0])
 }
 
-func (s *Shader) SendMat4(name string, m geo.Mat4) {
+func (s *Shader) SendMat4(name string, m Mat4) {
 	var data [16]float32
 
 	for i := 0; i < 16; i++ {

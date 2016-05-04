@@ -1,4 +1,4 @@
-package gl
+package goga
 
 // The dropable interface is used to clean up GL objects.
 // Use the Drop() function to drop a range of objects.

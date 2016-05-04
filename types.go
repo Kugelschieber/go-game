@@ -1,3 +1,3 @@
-package gl
+package goga
 
 const NullTerminator = "\x00"

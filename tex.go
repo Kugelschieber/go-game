@@ -1,17 +1,19 @@
-package gl
+package goga
 
 import (
-	"geo"
 	"github.com/go-gl/gl/v4.5-core/gl"
 	"image"
 )
 
 // Texture object.
 type Tex struct {
+	name          string
+	path          string
+	ext           string
 	id            uint32
 	target        uint32
 	activeTexture uint32
-	size          geo.Vec3
+	size          Vec3
 	rgba          *image.RGBA // optional, most of the time nil
 }
 
@@ -28,6 +30,36 @@ func NewTex(target uint32) *Tex {
 // Drops the texture.
 func (t *Tex) Drop() {
 	gl.DeleteBuffers(1, &t.id)
+}
+
+// Returns the name of this resource.
+func (t *Tex) GetName() string {
+	return t.name
+}
+
+// Sets the name of this resource.
+func (t *Tex) SetName(name string) {
+	t.name = name
+}
+
+// Returns the path of this resource.
+func (t *Tex) GetPath() string {
+	return t.path
+}
+
+// Sets the path of this resource.
+func (t *Tex) SetPath(path string) {
+	t.path = path
+}
+
+// Returns the file extension of this resource.
+func (t *Tex) GetExt() string {
+	return t.ext
+}
+
+// Sets the file extension of this resource.
+func (t *Tex) SetExt(ext string) {
+	t.ext = ext
 }
 
 // Binds the texture for rendering.
@@ -51,7 +83,7 @@ func (t *Tex) SetDefaultParams(filter int32) {
 
 // Creates a new 1D texture.
 func (t *Tex) Texture1D(level, internalFormat, width int32, format, ttype uint32, data []uint8) {
-	t.size = geo.Vec3{float64(width), 0, 0}
+	t.size = Vec3{float64(width), 0, 0}
 	t.Bind()
 
 	if data != nil {
@@ -63,7 +95,7 @@ func (t *Tex) Texture1D(level, internalFormat, width int32, format, ttype uint32
 
 // Creates a new 2D texture.
 func (t *Tex) Texture2D(level, internalFormat, width, height int32, format, ttype uint32, data []uint8) {
-	t.size = geo.Vec3{float64(width), float64(height), 0}
+	t.size = Vec3{float64(width), float64(height), 0}
 	t.Bind()
 
 	if data != nil {
@@ -75,7 +107,7 @@ func (t *Tex) Texture2D(level, internalFormat, width, height int32, format, ttyp
 
 // Creates a new 3D texture.
 func (t *Tex) Texture3D(level, internalFormat, width, height, depth int32, format, ttype uint32, data []uint8) {
-	t.size = geo.Vec3{float64(width), float64(height), float64(depth)}
+	t.size = Vec3{float64(width), float64(height), float64(depth)}
 	t.Bind()
 
 	if data != nil {
@@ -122,7 +154,7 @@ func (t *Tex) getActiveTexture() uint32 {
 }
 
 // Returns the size of this texture.
-func (t *Tex) GetSize() geo.Vec3 {
+func (t *Tex) GetSize() Vec3 {
 	return t.size
 }
 

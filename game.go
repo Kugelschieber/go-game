@@ -1,7 +1,9 @@
 package goga
 
 import (
+	"github.com/go-gl/gl/v4.5-core/gl"
 	"github.com/go-gl/glfw/v3.1/glfw"
+	"log"
 	"math"
 	"time"
 )
@@ -35,6 +37,8 @@ var (
 // This function will panic on error.
 func Run(game Game, options *RunOptions) {
 	// init glfw
+	log.Print("Initializing GLFW")
+
 	if err := glfw.Init(); err != nil {
 		panic("Error initializing GLFW: " + err.Error())
 	}
@@ -42,6 +46,7 @@ func Run(game Game, options *RunOptions) {
 	defer glfw.Terminate()
 
 	// create window
+	log.Print("Creating window")
 	width := default_width
 	height := default_height
 	title := default_title
@@ -60,8 +65,13 @@ func Run(game Game, options *RunOptions) {
 		panic("Error creating GLFW window: " + err.Error())
 	}
 
-	// start and loop
+	// init go-game
+	log.Print("Initializing goga")
 	wnd.MakeContextCurrent()
+	initGoga()
+
+	// start and loop
+	log.Print("Starting main loop")
 	delta := time.Duration(0)
 	var deltaSec float64
 
@@ -86,16 +96,25 @@ func Run(game Game, options *RunOptions) {
 
 // Stops the game and closes the window.
 func Stop() {
+	log.Print("Stopping main loop")
 	running = false
+}
+
+func initGoga() {
+	AddLoader(&PngLoader{gl.LINEAR, false})
 }
 
 func cleanup() {
 	// cleanup scenes
+	log.Print("Cleaning up scenes")
+
 	for _, scene := range scenes {
 		scene.Cleanup()
 	}
 
 	// cleanup systems
+	log.Print("Cleaning up systems")
+
 	for _, system := range systems {
 		system.Cleanup()
 	}
