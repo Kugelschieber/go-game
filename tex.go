@@ -7,9 +7,10 @@ import (
 
 // Texture object.
 type Tex struct {
-	name          string
-	path          string
-	ext           string
+	name string
+	path string
+	ext  string
+
 	id            uint32
 	target        uint32
 	activeTexture uint32
