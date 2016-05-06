@@ -25,13 +25,19 @@ type RunOptions struct {
 	Width               uint32
 	Height              uint32
 	ClearColor          Vec4
+	Resizable           bool
 	SetViewportOnResize bool
 	ResizeCallbackFunc  ResizeCallback
 	ExitOnClose         bool
 }
 
 // Main game object.
+// Setup will be called before the main loop and after GL context has been created.
+// Update will be called each frame. This can be used to switch scenes or end game on win state.
+// For game logic, System should be used.
 type Game interface {
+	Setup()
+	Update(float64)
 }
 
 var (
@@ -92,6 +98,10 @@ func Run(game Game, options *RunOptions) {
 		exitOnClose = options.ExitOnClose
 	}
 
+	if options != nil && !options.Resizable {
+		glfw.WindowHint(glfw.Resizable, glfw.False)
+	}
+
 	wnd, err := glfw.CreateWindow(int(width), int(height), title, nil, nil)
 
 	if err != nil {
@@ -104,6 +114,10 @@ func Run(game Game, options *RunOptions) {
 			SetViewport(0, 0, int32(width), int32(height))
 		} else if options != nil && options.SetViewportOnResize {
 			SetViewport(0, 0, int32(width), int32(height))
+		}
+
+		if activeScene != nil {
+			activeScene.Resize(width, height)
 		}
 
 		if options != nil && options.ResizeCallbackFunc != nil {
@@ -128,6 +142,8 @@ func Run(game Game, options *RunOptions) {
 		clearColor = options.ClearColor
 	}
 
+	game.Setup()
+
 	// start and loop
 	log.Print("Starting main loop")
 	delta := time.Duration(0)
@@ -148,7 +164,10 @@ func Run(game Game, options *RunOptions) {
 
 		if !math.IsInf(deltaSec, 0) && !math.IsInf(deltaSec, -1) {
 			updateSystems(deltaSec)
+			game.Update(deltaSec)
 		}
+
+		CheckGLError()
 
 		wnd.SwapBuffers()
 		delta = time.Since(start)
@@ -220,11 +239,13 @@ func initGoga() {
 }
 
 func cleanup() {
-	// cleanup scenes
-	log.Print("Cleaning up scenes")
+	// cleanup resources
+	log.Print("Cleaning up resources")
 
-	for _, scene := range scenes {
-		scene.Cleanup()
+	for _, res := range resources {
+		if drop, ok := res.(Dropable); ok {
+			drop.Drop()
+		}
 	}
 
 	// cleanup systems
@@ -234,12 +255,10 @@ func cleanup() {
 		system.Cleanup()
 	}
 
-	// cleanup resources
-	log.Print("Cleaning up resources")
+	// cleanup scenes
+	log.Print("Cleaning up scenes")
 
-	for _, res := range resources {
-		if drop, ok := res.(Dropable); ok {
-			drop.Drop()
-		}
+	for _, scene := range scenes {
+		scene.Cleanup()
 	}
 }

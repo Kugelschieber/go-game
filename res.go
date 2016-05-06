@@ -3,6 +3,7 @@ package goga
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 	"strings"
 )
@@ -44,6 +45,7 @@ func AddLoader(loader ResLoader) bool {
 	}
 
 	resloader = append(resloader, loader)
+	log.Print("Added loader for " + loader.Ext() + " files")
 
 	return true
 }
@@ -54,6 +56,7 @@ func RemoveLoader(loader ResLoader) bool {
 	for i, l := range resloader {
 		if l == loader {
 			resloader = append(resloader[:i], resloader[i+1:]...)
+			log.Print("Removed loader for " + loader.Ext() + " files")
 			return true
 		}
 	}
@@ -69,6 +72,7 @@ func RemoveLoaderByExt(ext string) bool {
 	for i, l := range resloader {
 		if strings.ToLower(l.Ext()) == ext {
 			resloader = append(resloader[:i], resloader[i+1:]...)
+			log.Print("Removed loader for " + ext + " files")
 			return true
 		}
 	}
@@ -79,6 +83,7 @@ func RemoveLoaderByExt(ext string) bool {
 // Removes all loaders.
 func RemoveAllLoaders() {
 	resloader = make([]ResLoader, 0)
+	log.Print("Cleared loaders")
 }
 
 // Returns a loader by file extension.
@@ -130,6 +135,7 @@ func LoadRes(path string) (Res, error) {
 	}
 
 	resources = append(resources, res)
+	log.Print("Loaded resource: " + res.GetName())
 
 	return res, nil
 }
@@ -138,6 +144,7 @@ func LoadRes(path string) (Res, error) {
 // If a loader is missing or fails to load the resource, an error will be returned.
 // All resources will be kept until an error occures.
 func LoadResFromFolder(path string) error {
+	log.Print("Loading resources from: " + path)
 	dir, err := ioutil.ReadDir(path)
 
 	if err != nil {
@@ -185,6 +192,7 @@ func RemoveResByName(name string) bool {
 	for i, r := range resources {
 		if r.GetName() == name {
 			resources = append(resources[:i], resources[i+1:]...)
+			log.Print("Removed resource: " + r.GetName())
 			return true
 		}
 	}
@@ -198,6 +206,7 @@ func RemoveResByPath(path string) bool {
 	for i, r := range resources {
 		if r.GetPath() == path {
 			resources = append(resources[:i], resources[i+1:]...)
+			log.Print("Removed resource: " + r.GetName())
 			return true
 		}
 	}
@@ -208,4 +217,5 @@ func RemoveResByPath(path string) bool {
 // Removes all resources.
 func RemoveAllRes() {
 	resources = make([]Res, 0)
+	log.Print("Cleared resources")
 }

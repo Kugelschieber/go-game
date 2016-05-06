@@ -1,9 +1,16 @@
 package goga
 
+import (
+	"log"
+)
+
 // A scene used to switch between game states.
 // The Cleanup() method is called when a scene is removed
 // or the program is stopped. It can be used to cleanup open resources
 // (like GL objects).
+// On switch, Pause() and Resume() are called.
+// The name returned by GetName() must be unique. A scene must only be
+// registered once.
 type Scene interface {
 	Pause()
 	Resume()
@@ -19,6 +26,7 @@ var (
 
 // Adds a scene to game.
 // Returns false if the scene exists already.
+// The first scene added will be set active.
 func AddScene(scene Scene) bool {
 	for _, s := range scenes {
 		if s == scene {
@@ -27,6 +35,12 @@ func AddScene(scene Scene) bool {
 	}
 
 	scenes = append(scenes, scene)
+	log.Print("Added scene: " + scene.GetName())
+
+	if activeScene == nil {
+		activeScene = scene
+		log.Print("Active scene: " + scene.GetName())
+	}
 
 	return true
 }
@@ -38,6 +52,7 @@ func RemoveScene(scene Scene) bool {
 		if s == scene {
 			s.Cleanup()
 			scenes = append(scenes[:i], scenes[i+1:]...)
+			log.Print("Removed scene: " + scene.GetName())
 			return true
 		}
 	}
@@ -52,6 +67,7 @@ func RemoveAllScenes() {
 	}
 
 	scenes = make([]Scene, 0)
+	log.Print("Cleared scenes")
 }
 
 // Finds and returns a scene by name, or nil if not found.
@@ -73,6 +89,7 @@ func SwitchScene(scene Scene) {
 	}
 
 	activeScene = scene
+	log.Print("Active scene: " + scene.GetName())
 
 	for _, s := range scenes {
 		if s == activeScene {
