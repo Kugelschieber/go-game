@@ -13,6 +13,8 @@ go get github.com/DeKugelschieber/go-game
 
 *WIP*
 
+You can find some examples within the demo folder. For full reference visit: https://godoc.org/github.com/DeKugelschieber/go-game
+
 ## Dependencies
 
 * https://github.com/go-gl/gl
