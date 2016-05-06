@@ -4,3 +4,4 @@
 * more logging
 * limit FPS
 * fullscreen
+* simple access to default resources like GetTex()

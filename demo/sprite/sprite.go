@@ -11,24 +11,25 @@ const (
 type Game struct{}
 
 func (g *Game) Setup() {
-	res, err := goga.LoadRes(gopher_path)
+	// load texture
+	_, err := goga.LoadRes(gopher_path)
 
 	if err != nil {
 		panic(err)
 	}
 
-	tex, ok := res.(*goga.Tex)
+	// create sprite
+	tex, err := goga.GetTex("gopher.png")
 
-	if !ok {
-		panic("Resource is not a texture")
+	if err != nil {
+		panic(err)
 	}
 
 	sprite := goga.NewSprite(tex)
 	goga.AddActor(sprite)
 }
 
-func (g *Game) Update(delta float64) {
-}
+func (g *Game) Update(delta float64) {}
 
 func main() {
 	game := Game{}
