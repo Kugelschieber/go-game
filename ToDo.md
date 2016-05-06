@@ -1,5 +1,5 @@
 # ToDo
 
-* cleanup resources
+* ~~cleanup resources~~
 * more logging
 * limit FPS

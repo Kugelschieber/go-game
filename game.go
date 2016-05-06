@@ -16,13 +16,18 @@ const (
 	default_exit_on_close = true
 )
 
+// If set in RunOptions, the function will be called on window resize.
+type ResizeCallback func(width, height int)
+
 // Run options allow to set some parameters on startup.
 type RunOptions struct {
-	Title       string
-	Width       uint32
-	Height      uint32
-	ClearColor  Vec4
-	ExitOnClose bool
+	Title               string
+	Width               uint32
+	Height              uint32
+	ClearColor          Vec4
+	SetViewportOnResize bool
+	ResizeCallbackFunc  ResizeCallback
+	ExitOnClose         bool
 }
 
 // Main game object.
@@ -30,9 +35,11 @@ type Game interface {
 }
 
 var (
-	running     = true
-	clearColor  = Vec4{}
-	clearBuffer []uint32
+	running        = true
+	clearColor     = Vec4{}
+	clearBuffer    []uint32
+	viewportWidth  int
+	viewportHeight int
 )
 
 func init() {
@@ -77,8 +84,11 @@ func Run(game Game, options *RunOptions) {
 		height = options.Height
 	}
 
-	if options != nil {
+	if options != nil && len(options.Title) > 0 {
 		title = options.Title
+	}
+
+	if options != nil {
 		exitOnClose = options.ExitOnClose
 	}
 
@@ -88,6 +98,20 @@ func Run(game Game, options *RunOptions) {
 		panic("Error creating GLFW window: " + err.Error())
 	}
 
+	// window event handlers
+	wnd.SetSizeCallback(func(w *glfw.Window, width, height int) {
+		if options == nil {
+			SetViewport(0, 0, int32(width), int32(height))
+		} else if options != nil && options.SetViewportOnResize {
+			SetViewport(0, 0, int32(width), int32(height))
+		}
+
+		if options != nil && options.ResizeCallbackFunc != nil {
+			options.ResizeCallbackFunc(width, height)
+		}
+	})
+
+	// make GL context current
 	wnd.MakeContextCurrent()
 
 	// init go-game
@@ -116,7 +140,6 @@ func Run(game Game, options *RunOptions) {
 		}
 
 		start := time.Now()
-		glfw.PollEvents()
 		gl.ClearColor(float32(clearColor.X), float32(clearColor.Y), float32(clearColor.Z), float32(clearColor.W))
 
 		for _, buffer := range clearBuffer {
@@ -127,9 +150,10 @@ func Run(game Game, options *RunOptions) {
 			updateSystems(deltaSec)
 		}
 
+		wnd.SwapBuffers()
 		delta = time.Since(start)
 		deltaSec = delta.Seconds()
-		wnd.SwapBuffers()
+		glfw.PollEvents()
 	}
 }
 
@@ -161,12 +185,24 @@ func ClearDepthBuffer(do bool) {
 
 // Sets GL viewport.
 func SetViewport(x, y, width, height int32) {
+	viewportWidth = int(width)
+	viewportHeight = int(height)
 	gl.Viewport(x, y, width, height)
 }
 
 // Sets GL clear color.
 func SetClearColor(r, g, b, a float64) {
 	clearColor = Vec4{r, g, b, a}
+}
+
+// Returns width of viewport.
+func GetWidth() int {
+	return viewportWidth
+}
+
+// Returns height of viewport.
+func GetHeight() int {
+	return viewportHeight
 }
 
 func removeClearBuffer(buffer uint32) {
@@ -199,5 +235,11 @@ func cleanup() {
 	}
 
 	// cleanup resources
-	log.Print("TODO: cleanup resources")
+	log.Print("Cleaning up resources")
+
+	for _, res := range resources {
+		if drop, ok := res.(Dropable); ok {
+			drop.Drop()
+		}
+	}
 }
