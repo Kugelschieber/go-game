@@ -149,6 +149,7 @@ func (s *SpriteRenderer) Update(delta float64) {
 	s.Shader.SendMat3(Default_shader_2D_ortho, *MultMat3(s.Camera.CalcOrtho(), s.CalcModel()))
 	s.Shader.SendUniform1i(Default_shader_2D_tex, 0)
 	s.vao.Bind()
+	var tid uint32
 
 	for i := range s.sprites {
 		if !s.sprites[i].Visible {
@@ -156,7 +157,11 @@ func (s *SpriteRenderer) Update(delta float64) {
 		}
 
 		s.Shader.SendMat3(Default_shader_2D_model, *s.sprites[i].CalcModel())
-		s.sprites[i].Tex.Bind()
+
+		if tid != s.sprites[i].Tex.GetId() {
+			tid = s.sprites[i].Tex.GetId()
+			s.sprites[i].Tex.Bind()
+		}
 
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, nil)
 	}
