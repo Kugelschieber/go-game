@@ -14,6 +14,31 @@ const (
 	default_height        = uint32(400)
 	default_title         = "Game"
 	default_exit_on_close = true
+
+	// constants for default 2D shader
+	Default_shader_2D_vertex_attrib   = "vertex"
+	Default_shader_2D_texcoord_attrib = "texCoord"
+	Default_shader_2D_ortho           = "o"
+	Default_shader_2D_model           = "m"
+	Default_shader_2D_tex             = "tex"
+
+	default_shader_2d_vertex_src = `#version 130
+		uniform mat3 o, m;
+		in vec2 vertex;
+		in vec2 texCoord;
+		out vec2 tc;
+		void main(){
+		tc = texCoord;
+		gl_Position = vec4(o*m*vec3(vertex, 1.0), 1.0);
+		}`
+	default_shader_2d_fragment_src = `#version 130
+		precision highp float;
+		uniform sampler2D tex;
+		in vec2 tc;
+		out vec4 color;
+		void main(){
+		color = texture(tex, tc);
+		}`
 )
 
 // If set in RunOptions, the function will be called on window resize.
@@ -46,6 +71,10 @@ var (
 	clearBuffer    []uint32
 	viewportWidth  int
 	viewportHeight int
+
+	// Default resources
+	DefaultCamera   *Camera
+	Default2DShader *Shader
 )
 
 func init() {
@@ -130,7 +159,7 @@ func Run(game Game, options *RunOptions) {
 
 	// init go-game
 	log.Print("Initializing goga")
-	initGoga()
+	initGoga(int(width), int(height))
 
 	if options != nil && options.Width > 0 && options.Height > 0 {
 		SetViewport(0, 0, int32(options.Width), int32(options.Height))
@@ -176,6 +205,60 @@ func Run(game Game, options *RunOptions) {
 	}
 }
 
+func initGoga(width, height int) {
+	// default camera
+	DefaultCamera = NewCamera(0, 0, width, height)
+	DefaultCamera.CalcRatio()
+	DefaultCamera.CalcOrtho()
+
+	// default shader
+	shader, err := NewShader(default_shader_2d_vertex_src, default_shader_2d_fragment_src)
+
+	if err != nil {
+		panic(err)
+	}
+
+	Default2DShader = shader
+	Default2DShader.BindAttrib(Default_shader_2D_vertex_attrib)
+	Default2DShader.BindAttrib(Default_shader_2D_texcoord_attrib)
+
+	// settings and registration
+	ClearColorBuffer(true)
+	EnableAlphaBlending(true)
+	AddLoader(&PngLoader{gl.LINEAR, false})
+	AddSystem(NewSpriteRenderer(nil, nil, false))
+}
+
+func cleanup() {
+	// cleanup resources
+	log.Printf("Cleaning up %v resources", len(resources))
+
+	for _, res := range resources {
+		if drop, ok := res.(Dropable); ok {
+			drop.Drop()
+		}
+	}
+
+	// cleanup systems
+	log.Printf("Cleaning up %v systems", len(systems))
+
+	for _, system := range systems {
+		system.Cleanup()
+	}
+
+	// cleanup scenes
+	log.Printf("Cleaning up %v scenes", len(scenes))
+
+	for _, scene := range scenes {
+		scene.Cleanup()
+	}
+
+	// cleanup default
+	log.Print("Cleaning up default resources")
+
+	Default2DShader.Drop()
+}
+
 // Stops the game and closes the window.
 func Stop() {
 	log.Print("Stopping main loop")
@@ -202,10 +285,24 @@ func ClearDepthBuffer(do bool) {
 	}
 }
 
+// Enables/Disables alpha blending by source alpha channel.
+// BLEND = SRC_ALPHA | ONE_MINUS_SRC_ALPHA
+func EnableAlphaBlending(enable bool) {
+	if enable {
+		gl.Enable(gl.BLEND)
+		gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+	} else {
+		gl.Disable(gl.BLEND)
+	}
+}
+
 // Sets GL viewport.
 func SetViewport(x, y, width, height int32) {
 	viewportWidth = int(width)
 	viewportHeight = int(height)
+	DefaultCamera.SetViewport(int(x), int(y), viewportWidth, viewportHeight)
+	DefaultCamera.CalcRatio()
+	DefaultCamera.CalcOrtho()
 	gl.Viewport(x, y, width, height)
 }
 
@@ -230,35 +327,5 @@ func removeClearBuffer(buffer uint32) {
 			clearBuffer = append(clearBuffer[:i], clearBuffer[i+1:]...)
 			return
 		}
-	}
-}
-
-func initGoga() {
-	ClearColorBuffer(true)
-	AddLoader(&PngLoader{gl.LINEAR, false})
-}
-
-func cleanup() {
-	// cleanup resources
-	log.Print("Cleaning up resources")
-
-	for _, res := range resources {
-		if drop, ok := res.(Dropable); ok {
-			drop.Drop()
-		}
-	}
-
-	// cleanup systems
-	log.Print("Cleaning up systems")
-
-	for _, system := range systems {
-		system.Cleanup()
-	}
-
-	// cleanup scenes
-	log.Print("Cleaning up scenes")
-
-	for _, scene := range scenes {
-		scene.Cleanup()
 	}
 }

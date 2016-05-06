@@ -10,8 +10,8 @@ import ()
 type System interface {
 	Update(float64)
 	Cleanup()
-	Add(*Actor) bool
-	Remove(*Actor) bool
+	Add(interface{}) bool
+	Remove(interface{}) bool
 	RemoveById(ActorId) bool
 	RemoveAll()
 	Len() int

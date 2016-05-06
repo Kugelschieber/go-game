@@ -3,6 +3,7 @@ package goga
 import (
 	"errors"
 	"github.com/go-gl/gl/v4.5-core/gl"
+	"log"
 	"strings"
 )
 
@@ -26,8 +27,9 @@ func NewShader(vertexShader, fragmentShader string) (*Shader, error) {
 	shader.program = gl.CreateProgram()
 	shader.vertex = gl.CreateShader(gl.VERTEX_SHADER)
 	shader.fragment = gl.CreateShader(gl.FRAGMENT_SHADER)
+	CheckGLError()
 
-	if err := compileShader(&shader.vertex, vertexShader+NullTerminator); err != nil {
+	if err := compileShader(shader.vertex, vertexShader+NullTerminator); err != nil {
 		gl.DeleteShader(shader.vertex)
 		gl.DeleteShader(shader.fragment)
 		shader.Drop()
@@ -35,7 +37,7 @@ func NewShader(vertexShader, fragmentShader string) (*Shader, error) {
 		return nil, err
 	}
 
-	if err := compileShader(&shader.fragment, fragmentShader+NullTerminator); err != nil {
+	if err := compileShader(shader.fragment, fragmentShader+NullTerminator); err != nil {
 		gl.DeleteShader(shader.vertex)
 		gl.DeleteShader(shader.fragment)
 		shader.Drop()
@@ -54,21 +56,26 @@ func NewShader(vertexShader, fragmentShader string) (*Shader, error) {
 		return nil, err
 	}
 
+	CheckGLError()
+
 	// we don't need to keep them in memory
 	gl.DetachShader(shader.program, shader.vertex)
 	gl.DetachShader(shader.program, shader.fragment)
 	gl.DeleteShader(shader.vertex)
 	gl.DeleteShader(shader.fragment)
+	CheckGLError()
 
 	return shader, nil
 }
 
-func compileShader(shader *uint32, source string) error {
-	csrc := gl.Str(source)
-	gl.ShaderSource(*shader, 1, &csrc, nil)
-	gl.CompileShader(*shader)
+func compileShader(shader uint32, source string) error {
+	log.Print("Compiling shader: " + source)
+	csrc, free := gl.Strs(source)
+	gl.ShaderSource(shader, 1, csrc, nil)
+	gl.CompileShader(shader)
+	free()
 
-	if err := shaderCheckError(*shader); err != nil {
+	if err := shaderCheckError(shader); err != nil {
 		return err
 	}
 
