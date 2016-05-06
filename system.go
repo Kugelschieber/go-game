@@ -75,3 +75,48 @@ func updateSystems(delta float64) {
 		system.Update(delta)
 	}
 }
+
+// Takes an actor and tries to add it to all systems that accept it.
+// This maybe not as performant as directly adding it to the right system.
+// Returns true if it could be added to at least one system, else false.
+func AddActor(actor interface{}) bool {
+	accepted := false
+
+	for _, system := range systems {
+		if system.Add(actor) {
+			accepted = true
+		}
+	}
+
+	return accepted
+}
+
+// Removes an actor from all systems.
+// This maybe not as performant as directly removing it from the right system.
+// Returns true if it could be removed from at least one system, else false.
+func RemoveActor(actor interface{}) bool {
+	removed := false
+
+	for _, system := range systems {
+		if system.Remove(actor) {
+			removed = true
+		}
+	}
+
+	return removed
+}
+
+// Removes an actor from all systems by ID.
+// This maybe not as performant as directly removing it from the right system.
+// Returns true if it could be removed from at least one system, else false.
+func RemoveActorById(id ActorId) bool {
+	removed := false
+
+	for _, system := range systems {
+		if system.RemoveById(id) {
+			removed = true
+		}
+	}
+
+	return removed
+}

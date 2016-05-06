@@ -101,20 +101,13 @@ func (s *SpriteRenderer) Add(actor interface{}) bool {
 
 // Removes sprite from renderer.
 func (s *SpriteRenderer) Remove(actor interface{}) bool {
-	sprite, ok := actor.(Sprite)
+	sprite, ok := actor.(*Sprite)
 
 	if !ok {
 		return false
 	}
 
-	for i, sp := range s.sprites {
-		if sp == sprite {
-			s.sprites = append(s.sprites[:i], s.sprites[i+1:]...)
-			return true
-		}
-	}
-
-	return false
+	return s.RemoveById(sprite.Actor.GetId())
 }
 
 // Removes sprite from renderer by ID.

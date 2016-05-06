@@ -24,8 +24,7 @@ func (g *Game) Setup() {
 	}
 
 	sprite := goga.NewSprite(tex)
-	renderer := goga.GetSystemByName("spriteRenderer")
-	renderer.Add(sprite)
+	goga.AddActor(sprite)
 }
 
 func (g *Game) Update(delta float64) {
