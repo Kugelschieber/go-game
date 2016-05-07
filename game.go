@@ -226,6 +226,7 @@ func initGoga(width, height int) {
 	ClearColorBuffer(true)
 	EnableAlphaBlending(true)
 	AddLoader(&PngLoader{gl.LINEAR, false})
+	AddLoader(&PlyLoader{gl.STATIC_DRAW})
 	AddSystem(NewSpriteRenderer(nil, nil, false))
 	AddSystem(NewCulling2D(0, 0, width, height))
 }

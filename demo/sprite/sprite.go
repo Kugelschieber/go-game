@@ -26,7 +26,21 @@ func (g *Game) Setup() {
 	}
 
 	sprite := goga.NewSprite(tex)
-	goga.AddActor(sprite)
+	renderer, ok := goga.GetSystemByName("spriteRenderer").(*goga.SpriteRenderer)
+
+	if !ok {
+		panic("Could not find renderer")
+	}
+
+	renderer.Add(sprite.Actor, sprite.Pos2D, sprite.Tex)
+
+	culling, ok := goga.GetSystemByName("culling2d").(*goga.Culling2D)
+
+	if !ok {
+		panic("Could not find culling")
+	}
+
+	culling.Add(sprite.Actor, sprite.Pos2D)
 }
 
 func (g *Game) Update(delta float64) {}

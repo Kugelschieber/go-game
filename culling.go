@@ -1,9 +1,5 @@
 package goga
 
-import (
-	"log"
-)
-
 const (
 	culling_2d_name = "culling2d"
 )
@@ -90,10 +86,8 @@ func (c *Culling2D) Update(delta float64) {
 			c.cullables[i].Pos.Y > c.viewport.W ||
 			c.cullables[i].Pos.Y+c.cullables[i].Size.Y < c.viewport.Y {
 			c.cullables[i].Visible = false
-			log.Print("h")
 		} else {
 			c.cullables[i].Visible = true
-			log.Print("s")
 		}
 	}
 }
