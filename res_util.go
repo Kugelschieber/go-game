@@ -21,3 +21,21 @@ func GetTex(name string) (*Tex, error) {
 
 	return tex, nil
 }
+
+// Finds and returns a Ply resource.
+// If not found or when the resource is of wrong type, an error will be returned.
+func GetPly(name string) (*Ply, error) {
+	res := GetResByName(name)
+
+	if res == nil {
+		return nil, errors.New("Resource not found")
+	}
+
+	ply, ok := res.(*Ply)
+
+	if !ok {
+		return nil, errors.New("Resource was not of type *Ply")
+	}
+
+	return ply, nil
+}

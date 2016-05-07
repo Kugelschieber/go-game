@@ -5,7 +5,11 @@ Game engine written in Go using OpenGL and GLFW. Mostly for 2D rendering, but al
 
 ## Install
 
+go-game requires OpenGL and GLFW. The following three steps install everything you need:
+
 ```
+go get github.com/go-gl/gl/v4.5-core/gl
+go get github.com/go-gl/glfw/v3.1/glfw
 go get github.com/DeKugelschieber/go-game
 ```
 
@@ -23,3 +27,7 @@ You can find some examples within the demo folder. For full reference visit: htt
     - 3.1
 
 To use an older GL version, you need to replace the GL imports in package goga. It should mostly be compatible down to 3.x.
+
+## License
+
+MIT

@@ -15,19 +15,6 @@ type Sprite struct {
 	*Tex
 }
 
-// The sprite renderer is a system rendering sprites.
-// It has a 2D position componente, to move all sprites at once.
-type SpriteRenderer struct {
-	Pos2D
-
-	Shader *Shader
-	Camera *Camera
-
-	sprites                 []Sprite
-	index, vertex, texCoord *VBO
-	vao                     *VAO
-}
-
 // Creates a new sprite with given texture.
 func NewSprite(tex *Tex) *Sprite {
 	sprite := &Sprite{}
@@ -41,6 +28,19 @@ func NewSprite(tex *Tex) *Sprite {
 	CheckGLError()
 
 	return sprite
+}
+
+// The sprite renderer is a system rendering sprites.
+// It has a 2D position component, to move all sprites at once.
+type SpriteRenderer struct {
+	Pos2D
+
+	Shader *Shader
+	Camera *Camera
+
+	sprites                 []Sprite
+	index, vertex, texCoord *VBO
+	vao                     *VAO
 }
 
 // Creates a new sprite renderer using given shader and camera.
@@ -132,7 +132,7 @@ func (s *SpriteRenderer) GetName() string {
 	return sprite_renderer_name
 }
 
-// Renders sprites.
+// Render sprites.
 func (s *SpriteRenderer) Update(delta float64) {
 	s.Shader.Bind()
 	s.Shader.SendMat3(Default_shader_2D_ortho, *MultMat3(s.Camera.CalcOrtho(), s.CalcModel()))
@@ -147,6 +147,7 @@ func (s *SpriteRenderer) Update(delta float64) {
 
 		s.Shader.SendMat3(Default_shader_2D_model, *s.sprites[i].CalcModel())
 
+		// prevent texture switching when not neccessary
 		if tid != s.sprites[i].Tex.GetId() {
 			tid = s.sprites[i].Tex.GetId()
 			s.sprites[i].Tex.Bind()

@@ -75,6 +75,25 @@ type Ply struct {
 	IndexBuffer, VertexBuffer, TexCoordBuffer, NormalBuffer *VBO
 }
 
+// Drops contained GL buffers.
+func (p *Ply) Drop() {
+	if p.IndexBuffer != nil {
+		p.IndexBuffer.Drop()
+	}
+
+	if p.VertexBuffer != nil {
+		p.VertexBuffer.Drop()
+	}
+
+	if p.TexCoordBuffer != nil {
+		p.TexCoordBuffer.Drop()
+	}
+
+	if p.NormalBuffer != nil {
+		p.NormalBuffer.Drop()
+	}
+}
+
 // Returns the name of this resource.
 func (p *Ply) GetName() string {
 	return p.name
