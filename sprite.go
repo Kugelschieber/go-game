@@ -87,27 +87,23 @@ func (s *SpriteRenderer) Cleanup() {
 }
 
 // Adds sprite to the renderer.
-func (s *SpriteRenderer) Add(actor interface{}) bool {
-	sprite, ok := actor.(*Sprite)
+func (s *SpriteRenderer) Add(actor *Actor, pos *Pos2D, tex *Tex) bool {
+	id := actor.GetId()
 
-	if !ok {
-		return false
+	for _, sprite := range s.sprites {
+		if id == sprite.Actor.GetId() {
+			return false
+		}
 	}
 
-	s.sprites = append(s.sprites, *sprite)
+	s.sprites = append(s.sprites, Sprite{actor, pos, tex})
 
 	return true
 }
 
 // Removes sprite from renderer.
-func (s *SpriteRenderer) Remove(actor interface{}) bool {
-	sprite, ok := actor.(*Sprite)
-
-	if !ok {
-		return false
-	}
-
-	return s.RemoveById(sprite.Actor.GetId())
+func (s *SpriteRenderer) Remove(actor *Actor) bool {
+	return s.RemoveById(actor.GetId())
 }
 
 // Removes sprite from renderer by ID.

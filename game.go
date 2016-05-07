@@ -227,6 +227,7 @@ func initGoga(width, height int) {
 	EnableAlphaBlending(true)
 	AddLoader(&PngLoader{gl.LINEAR, false})
 	AddSystem(NewSpriteRenderer(nil, nil, false))
+	AddSystem(NewCulling2D(0, 0, width, height))
 }
 
 func cleanup() {
@@ -296,13 +297,23 @@ func EnableAlphaBlending(enable bool) {
 	}
 }
 
-// Sets GL viewport.
+// Sets GL viewport and updates default resources and systems.
 func SetViewport(x, y, width, height int32) {
 	viewportWidth = int(width)
 	viewportHeight = int(height)
+
 	DefaultCamera.SetViewport(int(x), int(y), viewportWidth, viewportHeight)
 	DefaultCamera.CalcRatio()
 	DefaultCamera.CalcOrtho()
+
+	if culling2d := GetSystemByName(culling_2d_name); culling2d != nil {
+		system, ok := culling2d.(*Culling2D)
+
+		if ok {
+			system.SetViewport(int(x), int(y), viewportWidth, viewportHeight)
+		}
+	}
+
 	gl.Viewport(x, y, width, height)
 }
 

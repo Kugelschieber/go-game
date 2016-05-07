@@ -10,8 +10,7 @@ import ()
 type System interface {
 	Update(float64)
 	Cleanup()
-	Add(interface{}) bool
-	Remove(interface{}) bool
+	Remove(*Actor) bool
 	RemoveById(ActorId) bool
 	RemoveAll()
 	Len() int
@@ -76,34 +75,11 @@ func updateSystems(delta float64) {
 	}
 }
 
-// Takes an actor and tries to add it to all systems that accept it.
-// This maybe not as performant as directly adding it to the right system.
-// Returns true if it could be added to at least one system, else false.
-func AddActor(actor interface{}) bool {
-	accepted := false
-
-	for _, system := range systems {
-		if system.Add(actor) {
-			accepted = true
-		}
-	}
-
-	return accepted
-}
-
 // Removes an actor from all systems.
 // This maybe not as performant as directly removing it from the right system.
 // Returns true if it could be removed from at least one system, else false.
-func RemoveActor(actor interface{}) bool {
-	removed := false
-
-	for _, system := range systems {
-		if system.Remove(actor) {
-			removed = true
-		}
-	}
-
-	return removed
+func RemoveActor(actor *Actor) bool {
+	return RemoveActorById(actor.GetId())
 }
 
 // Removes an actor from all systems by ID.
