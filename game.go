@@ -392,6 +392,15 @@ func EnableAlphaBlending(enable bool) {
 	}
 }
 
+// Enables/Disables depth test.
+func EnableDepthTest(enable bool) {
+	if enable {
+		gl.Enable(gl.DEPTH_TEST)
+	} else {
+		gl.Disable(gl.DEPTH_TEST)
+	}
+}
+
 // Sets GL viewport and updates default resources and systems.
 func SetViewport(x, y, width, height int32) {
 	viewportWidth = int(width)
