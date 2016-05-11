@@ -309,6 +309,7 @@ func initGoga(width, height int) {
 	AddSystem(NewSpriteRenderer(nil, nil, false))
 	AddSystem(NewModelRenderer(nil, nil, false))
 	AddSystem(NewCulling2D(0, 0, width, height))
+	AddSystem(NewKeyframeRenderer(nil, nil))
 }
 
 func cleanup() {
