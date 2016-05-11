@@ -13,11 +13,13 @@ go get github.com/go-gl/glfw/v3.1/glfw
 go get github.com/DeKugelschieber/go-game
 ```
 
+You also need a cgo compiler (typically gcc) and GL/GLFW development libraries and headers. You can find further instructions on the GitHub pages below (see dependencies).
+
 ## Usage
 
 *WIP*
 
-You can find some examples within the demo folder. For full reference visit: https://godoc.org/github.com/DeKugelschieber/go-game
+Examples can be found within the demo folder. For full reference visit: https://godoc.org/github.com/DeKugelschieber/go-game
 
 ## Dependencies
 
@@ -27,6 +29,10 @@ You can find some examples within the demo folder. For full reference visit: htt
     - 3.1
 
 To use an older GL version, you need to replace the GL imports in package goga. It should mostly be compatible down to 3.x.
+
+## Contribute
+
+To contribute, please create pull requests. The code must be formatted by gofmt and fit into the architecture.
 
 ## License
 
