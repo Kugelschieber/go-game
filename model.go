@@ -14,6 +14,26 @@ type Mesh struct {
 	Vao                     *VAO
 }
 
+// Model is an actor having a 3D position, a texture and a 3D mesh.
+type Model struct {
+	*Actor
+	*Pos3D
+	*Tex
+	*Mesh
+}
+
+// The model renderer is a system rendering models.
+// It has a 3D position component, to move all models at once.
+type ModelRenderer struct {
+	Pos3D
+
+	Shader *Shader
+	Camera *Camera
+	ortho  bool
+
+	models []Model
+}
+
 // Creates a new mesh with given GL buffers.
 // The VAO must be prepared by ModelRenderer.
 func NewMesh(index, vertex, texcoord *VBO) *Mesh {
@@ -36,14 +56,6 @@ func (m *Mesh) Drop() {
 	m.Vao.Drop()
 }
 
-// Model is an actor having a 3D position, a texture and a 3D mesh.
-type Model struct {
-	*Actor
-	*Pos3D
-	*Tex
-	*Mesh
-}
-
 // Creates a new model with given mesh and texture.
 func NewModel(mesh *Mesh, tex *Tex) *Model {
 	model := &Model{}
@@ -58,18 +70,6 @@ func NewModel(mesh *Mesh, tex *Tex) *Model {
 	CheckGLError()
 
 	return model
-}
-
-// The model renderer is a system rendering models.
-// It has a 3D position component, to move all models at once.
-type ModelRenderer struct {
-	Pos3D
-
-	Shader *Shader
-	Camera *Camera
-	ortho  bool
-
-	models []Model
 }
 
 // Creates a new model renderer using given shader and camera.

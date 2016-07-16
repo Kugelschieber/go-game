@@ -1,5 +1,47 @@
 package goga
 
+import ()
+
+type character struct {
+	char           byte
+	min, max, size Vec2
+	offset         float64
+}
+
+// Font represents a texture mapped font.
+// It can be loaded from JSON together with a texture.
+type Font struct {
+	Tex              *Tex
+	tileSize         float64
+	CharPadding      Vec2
+	Space, Tab, Line float64
+	chars            []character
+}
+
+// Text is an actor representing text rendered as texture mapped font.
+// Each Text has a position and its own buffers.
+type Text struct {
+	*Actor
+	*Pos2D
+
+	text                    string
+	bounds                  Vec2
+	index, vertex, texCoord *VBO
+	vao                     *VAO
+}
+
+// The text renderer is a system rendering 2D texture mapped font.
+// It has a 2D position component, to move all texts at once.
+type TextRenderer struct {
+	Pos2D
+
+	Shader *Shader
+	Camera *Camera
+	Font   *Font
+	Color  Vec4 // TODO move this to Text?
+	texts  []Text
+}
+
 /*
 import (
 	"core"

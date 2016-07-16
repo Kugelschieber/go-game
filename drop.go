@@ -7,7 +7,7 @@ type Dropable interface {
 }
 
 // Drops given GL objects.
-// Objects must implement the Dropable inteface.
+// Objects must implement the Dropable interface.
 func Drop(objects []Dropable) {
 	for _, obj := range objects {
 		obj.Drop()

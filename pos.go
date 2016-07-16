@@ -8,6 +8,13 @@ type Pos2D struct {
 	M                          Mat3
 }
 
+// Position component for 3D objects
+type Pos3D struct {
+	Pos, Size, Scale, RotPoint, Rot Vec3
+	Visible                         bool
+	M                               Mat4
+}
+
 // Creates a default initialized Pos2D.
 func NewPos2D() *Pos2D {
 	m := Mat3{}
@@ -36,13 +43,6 @@ func (p *Pos2D) GetCenter() Vec2 {
 // Returns true when given point is within rectangle of this object.
 func (p *Pos2D) PointInRect(point Vec2) bool {
 	return point.X > p.Pos.X && point.X < p.Pos.X+p.Size.X*p.Scale.X && point.Y > p.Pos.Y && point.Y < p.Pos.Y+p.Size.Y*p.Scale.Y
-}
-
-// Position component for 3D objects
-type Pos3D struct {
-	Pos, Size, Scale, RotPoint, Rot Vec3
-	Visible                         bool
-	M                               Mat4
 }
 
 // Creates a default initialized Pos3D.

@@ -15,6 +15,19 @@ type Sprite struct {
 	*Tex
 }
 
+// The sprite renderer is a system rendering sprites.
+// It has a 2D position component, to move all sprites at once.
+type SpriteRenderer struct {
+	Pos2D
+
+	Shader *Shader
+	Camera *Camera
+
+	sprites                 []Sprite
+	index, vertex, texCoord *VBO
+	vao                     *VAO
+}
+
 // Creates a new sprite with given texture.
 func NewSprite(tex *Tex) *Sprite {
 	sprite := &Sprite{}
@@ -28,19 +41,6 @@ func NewSprite(tex *Tex) *Sprite {
 	CheckGLError()
 
 	return sprite
-}
-
-// The sprite renderer is a system rendering sprites.
-// It has a 2D position component, to move all sprites at once.
-type SpriteRenderer struct {
-	Pos2D
-
-	Shader *Shader
-	Camera *Camera
-
-	sprites                 []Sprite
-	index, vertex, texCoord *VBO
-	vao                     *VAO
 }
 
 // Creates a new sprite renderer using given shader and camera.

@@ -21,6 +21,27 @@ type PngLoader struct {
 	KeepData bool
 }
 
+// Standford ply file resource.
+type Ply struct {
+	name string
+	path string
+	ext  string
+
+	firstLine, data, hasVertex, hasTexCoord, hasNormal bool
+	elements, faces                                    int
+	indices                                            []uint32
+	vertices, texCoords, normals                       []float32
+
+	IndexBuffer, VertexBuffer, TexCoordBuffer, NormalBuffer *VBO
+}
+
+// Loads ply files and creates VBOs within the Ply resource.
+// The indices must be present as triangles.
+// Expected type is float32. If it fails to parse, it will panic.
+type PlyLoader struct {
+	VboUsage uint32
+}
+
 func (p *PngLoader) Load(file string) (Res, error) {
 	// load texture
 	imgFile, err := os.Open(file)
@@ -59,20 +80,6 @@ func (p *PngLoader) Load(file string) (Res, error) {
 
 func (p *PngLoader) Ext() string {
 	return "png"
-}
-
-// Standford ply file resource.
-type Ply struct {
-	name string
-	path string
-	ext  string
-
-	firstLine, data, hasVertex, hasTexCoord, hasNormal bool
-	elements, faces                                    int
-	indices                                            []uint32
-	vertices, texCoords, normals                       []float32
-
-	IndexBuffer, VertexBuffer, TexCoordBuffer, NormalBuffer *VBO
 }
 
 // Drops contained GL buffers.
@@ -122,13 +129,6 @@ func (p *Ply) GetExt() string {
 // Sets the file extension of this resource.
 func (p *Ply) SetExt(ext string) {
 	p.ext = ext
-}
-
-// Loads ply files and creates VBOs within the Ply resource.
-// The indices must be present as triangles.
-// Expected type is float32. If it fails to parse, it will panic.
-type PlyLoader struct {
-	VboUsage uint32
 }
 
 func (p *PlyLoader) Load(file string) (Res, error) {
