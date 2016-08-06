@@ -1,11 +1,25 @@
 package goga
 
-import ()
+import (
+	"encoding/json"
+	"github.com/go-gl/gl/v4.5-core/gl"
+	"io/ioutil"
+)
+
+const (
+	char_padding       = 2
+	text_renderer_name = "textRenderer"
+)
 
 type character struct {
 	char           byte
 	min, max, size Vec2
 	offset         float64
+}
+
+type jsonChar struct {
+	Char         string
+	X, Y, Offset float64
 }
 
 // Font represents a texture mapped font.
@@ -18,16 +32,23 @@ type Font struct {
 	chars            []character
 }
 
-// Text is an actor representing text rendered as texture mapped font.
-// Each Text has a position and its own buffers.
-type Text struct {
-	*Actor
-	*Pos2D
+// Renderable text component.
+// Use together with Text and create using NewText().
+type TextComponent struct {
+	Color Vec4
 
 	text                    string
 	bounds                  Vec2
 	index, vertex, texCoord *VBO
 	vao                     *VAO
+}
+
+// Text is an actor representing text rendered as texture mapped font.
+// Each Text has a position and its own buffers.
+type Text struct {
+	*Actor
+	*Pos2D
+	*TextComponent
 }
 
 // The text renderer is a system rendering 2D texture mapped font.
@@ -38,74 +59,64 @@ type TextRenderer struct {
 	Shader *Shader
 	Camera *Camera
 	Font   *Font
-	Color  Vec4 // TODO move this to Text?
 	texts  []Text
 }
 
-/*
-import (
-	"core"
-	"dp"
-	"encoding/json"
-	"geo"
-	"github.com/go-gl/gl/v4.5-core/gl"
-	"io/ioutil"
-	"util"
-)
-
-const (
-	char_padding = 2
-)
-
-// Returns a new renderable text object.
-func NewText(font *Font, text string) *Text {
-	t := &Text{id: core.NextId()}
-	t.text = text
-	t.index = dp.NewVBO(gl.ELEMENT_ARRAY_BUFFER)
-	t.vertex = dp.NewVBO(gl.ARRAY_BUFFER)
-	t.texCoord = dp.NewVBO(gl.ARRAY_BUFFER)
-	t.vao = dp.NewVAO()
-	t.SetText(font, text)
-	t.Size = geo.Vec2{1, 1}
-	t.Scale = geo.Vec2{1, 1}
-	t.Visible = true
-
-	return t
-}
-
-type Character struct {
-	char           byte
-	min, max, size geo.Vec2
-	offset         float64
-}
-
-type Font struct {
-	Tex              *dp.Tex
-	tileSize         float64
-	CharPadding      geo.Vec2
-	Space, Tab, Line float64
-	chars            []Character
-}
-
-type jsonChar struct {
-	Char         string
-	X, Y, Offset float64
-}
-
-// Creates a new font from texture. Characters must be added afterwards.
-// The characters must be placed within a grid,
-// the second parameter describes the width and height of one tile in pixel.
-func NewFont(tex *dp.Tex, tileSize int) *Font {
-	font := &Font{}
+// Creates a new font for given texture.
+// The tile size specifies the size of one character tile on texture.
+// Characters must be added afterwards.
+func NewFont(tex *Tex, tileSize float64) *Font {
+	font := Font{}
 	font.Tex = tex
-	font.tileSize = float64(tileSize)
-	font.CharPadding = geo.Vec2{0.05, 0.05}
+	font.tileSize = tileSize
+	font.CharPadding = Vec2{0.05, 0.05}
 	font.Space = 0.3
 	font.Tab = 1.2
 	font.Line = 1
-	font.chars = make([]Character, 0)
+	font.chars = make([]character, 0)
 
-	return font
+	return &font
+}
+
+// Returns a new renderable text object.
+func NewText(font *Font, textStr string) *Text {
+	text := Text{}
+	text.Actor = NewActor()
+	text.Pos2D = NewPos2D()
+	text.TextComponent = &TextComponent{}
+	text.index = NewVBO(gl.ELEMENT_ARRAY_BUFFER)
+	text.vertex = NewVBO(gl.ARRAY_BUFFER)
+	text.texCoord = NewVBO(gl.ARRAY_BUFFER)
+	text.vao = NewVAO()
+	text.SetText(font, textStr)
+	text.Color = Vec4{1, 1, 1, 1}
+	text.Size = Vec2{1, 1}
+	text.Scale = Vec2{1, 1}
+	text.Visible = true
+
+	return &text
+}
+
+// Creates a new text renderer using given shader, camera and font.
+// If shader and/or camera are nil, the default one will be used.
+func NewTextRenderer(shader *Shader, camera *Camera, font *Font) *TextRenderer {
+	if shader == nil {
+		shader = DefaultTextShader
+	}
+
+	if camera == nil {
+		camera = DefaultCamera
+	}
+
+	renderer := &TextRenderer{}
+	renderer.Shader = shader
+	renderer.Camera = camera
+	renderer.Font = font
+	renderer.texts = make([]Text, 0)
+	renderer.Size = Vec2{1, 1}
+	renderer.Scale = Vec2{1, 1}
+
+	return renderer
 }
 
 // Loads characters from JSON file.
@@ -124,7 +135,7 @@ func NewFont(tex *dp.Tex, tileSize int) *Font {
 // Where x and y start in the upper left corner of the texture, both of type int.
 // Offset is optional and can be used to move a character up or down (relative to others).
 // If cut is set to true, the characters will be true typed.
-func (f *Font) LoadFromJson(path string, cut bool) error {
+func (f *Font) FromJson(path string, cut bool) error {
 	// load file content
 	content, err := ioutil.ReadFile(path)
 
@@ -150,21 +161,22 @@ func (f *Font) extractChars(chars []jsonChar, cut bool) {
 			continue
 		}
 
-		var min, max, size geo.Vec2
+		var min, max, size Vec2
 
 		if !cut {
-			min = geo.Vec2{char.X * f.tileSize, char.Y * f.tileSize}
-			max = geo.Vec2{min.X + f.tileSize, min.Y + f.tileSize}
-			size = geo.Vec2{1, 1}
+			min = Vec2{char.X * f.tileSize, char.Y * f.tileSize}
+			max = Vec2{min.X + f.tileSize, min.Y + f.tileSize}
+			size = Vec2{1, 1}
 		} else {
 			min, max, size = f.cutChar(int(char.X), int(char.Y))
 		}
 
-		f.chars = append(f.chars, Character{char.Char[0], min, max, size, char.Offset})
+		f.chars = append(f.chars, character{char.Char[0], min, max, size, char.Offset})
 	}
 }
 
-func (f *Font) cutChar(x, y int) (geo.Vec2, geo.Vec2, geo.Vec2) {
+func (f *Font) cutChar(x, y int) (Vec2, Vec2, Vec2) {
+	// find min/max corners of character on texture
 	minX := int(f.Tex.GetSize().X)
 	minY := int(f.Tex.GetSize().Y)
 	maxX := 0
@@ -193,22 +205,21 @@ func (f *Font) cutChar(x, y int) (geo.Vec2, geo.Vec2, geo.Vec2) {
 		}
 	}
 
+	// add padding
 	minX -= char_padding
 	maxX += char_padding
 	minY -= char_padding
 	maxY += char_padding
 
 	texSize := f.Tex.GetSize()
-	min := geo.Vec2{float64(minX) / texSize.X, float64(maxY) / texSize.Y}
-	max := geo.Vec2{float64(maxX) / texSize.X, float64(minY) / texSize.Y}
-
-	// size
-	size := geo.Vec2{float64(maxX-minX) / f.tileSize, float64(maxY-minY) / f.tileSize}
+	min := Vec2{float64(minX) / texSize.X, float64(maxY) / texSize.Y}
+	max := Vec2{float64(maxX) / texSize.X, float64(minY) / texSize.Y}
+	size := Vec2{float64(maxX-minX) / f.tileSize, float64(maxY-minY) / f.tileSize}
 
 	return min, max, size
 }
 
-func (f *Font) getChar(char byte) *Character {
+func (f *Font) getChar(char byte) *character {
 	for _, character := range f.chars {
 		if character.char == char {
 			return &character
@@ -218,20 +229,8 @@ func (f *Font) getChar(char byte) *Character {
 	return nil
 }
 
-type Text struct {
-	*Actor
-	*Pos2D
-
-	id     int
-	text   string
-	bounds geo.Vec2
-
-	index, vertex, texCoord *dp.VBO
-	vao                     *dp.VAO
-}
-
-// Deletes GL buffers bound to this text.
-func (t *Text) Drop() {
+// Deletes GL buffers bound to this text component.
+func (t *TextComponent) Drop() {
 	t.index.Drop()
 	t.vertex.Drop()
 	t.texCoord.Drop()
@@ -241,7 +240,6 @@ func (t *Text) Drop() {
 // Sets the given string as text and (re)creates buffers.
 func (t *Text) SetText(font *Font, text string) {
 	t.text = text
-
 	indices := make([]uint32, len(text)*6)
 	vertices := make([]float32, len(text)*8)
 	texCoords := make([]float32, len(text)*8)
@@ -263,7 +261,7 @@ func (t *Text) SetText(font *Font, text string) {
 
 	// create vertices/texCoords
 	index = 0
-	offset := geo.Vec2{}
+	offset := Vec2{}
 	var width, height float64
 
 	for i := 0; i < len(text)*8 && int(index) < len(text); i += 8 {
@@ -327,18 +325,14 @@ func (t *Text) SetText(font *Font, text string) {
 		}
 	}
 
-	t.bounds = geo.Vec2{width, height}
+	t.bounds = Vec2{width, height}
 
 	// fill GL buffer
 	t.index.Fill(gl.Ptr(indices[:chars*6]), 4, chars*6, gl.STATIC_DRAW)
 	t.vertex.Fill(gl.Ptr(vertices[:chars*8]), 4, chars*8, gl.STATIC_DRAW)
 	t.texCoord.Fill(gl.Ptr(texCoords[:chars*8]), 4, chars*8, gl.STATIC_DRAW)
 
-	util.CheckGLError()
-}
-
-func (t *Text) GetId() int {
-	return t.id
+	CheckGLError()
 }
 
 // Returns the text as string.
@@ -347,87 +341,82 @@ func (t *Text) GetText() string {
 }
 
 // Returns bounds of text, which is the size of characters.
-func (t *Text) GetBounds() geo.Vec2 {
-	return geo.Vec2{t.bounds.X * t.Size.X * t.Scale.X, t.bounds.Y * t.Size.Y * t.Scale.Y}
+func (t *Text) GetBounds() Vec2 {
+	return Vec2{t.bounds.X * t.Size.X * t.Scale.X, t.bounds.Y * t.Size.Y * t.Scale.Y}
 }
 
-type TextRenderer struct {
-	Pos2D
-
-	Shader *dp.Shader
-	Camera *Camera
-	Font   *Font
-	Color  geo.Vec4
-	texts  []*Text
-}
-
-// Creates a new text renderer using given shader, camera and font.
-// If shader and/or camera are nil, the default one will be used.
-func NewTextRenderer(shader *dp.Shader, camera *Camera, font *Font) *TextRenderer {
-	renderer := &TextRenderer{}
-	renderer.Shader = shader
-	renderer.Camera = camera
-	renderer.Font = font
-	renderer.Color = geo.Vec4{1, 1, 1, 1}
-	renderer.texts = make([]*Text, 0)
-	renderer.Size = geo.Vec2{1, 1}
-	renderer.Scale = geo.Vec2{1, 1}
-
-	return renderer
-}
-
-// Prepares a text for rendering.
+// Prepares given text for rendering.
 func (r *TextRenderer) Prepare(text *Text) {
-	text.vao = dp.NewVAO()
+	text.vao = NewVAO()
 	text.vao.Bind()
 	r.Shader.EnableVertexAttribArrays()
 	text.index.Bind()
 	text.vertex.Bind()
-	text.vertex.AttribPointer(r.Shader.GetAttribLocation(TEXTRENDERER_VERTEX_ATTRIB), 2, gl.FLOAT, false, 0)
+	text.vertex.AttribPointer(r.Shader.GetAttribLocation(Default_shader_text_vertex_attrib), 2, gl.FLOAT, false, 0)
 	text.texCoord.Bind()
-	text.texCoord.AttribPointer(r.Shader.GetAttribLocation(TEXTRENDERER_TEXCOORD_ATTRIB), 2, gl.FLOAT, false, 0)
+	text.texCoord.AttribPointer(r.Shader.GetAttribLocation(Default_shader_text_texcoord_attrib), 2, gl.FLOAT, false, 0)
 	text.vao.Unbind()
 }
 
-// Adds text to the renderer.
-func (r *TextRenderer) Add(text *Text) {
-	r.texts = append(r.texts, text)
+// Frees recources created by text component.
+// This is called automatically when system gets removed.
+func (r *TextRenderer) Cleanup() {
+	for _, text := range r.texts {
+		text.Drop()
+	}
 }
 
-// Returns text by ID.
-func (r *TextRenderer) Get(id int) *Text {
+// Adds text to the renderer.
+func (r *TextRenderer) Add(actor *Actor, pos *Pos2D, text *TextComponent) bool {
+	id := actor.GetId()
+
 	for _, text := range r.texts {
-		if text.GetId() == id {
-			return text
+		if id == text.Actor.GetId() {
+			return false
 		}
 	}
 
-	return nil
+	r.texts = append(r.texts, Text{actor, pos, text})
+
+	return true
+}
+
+// Removes text from renderer.
+func (r *TextRenderer) Remove(actor *Actor) bool {
+	return r.RemoveById(actor.GetId())
 }
 
 // Removes text from renderer by ID.
-func (r *TextRenderer) Remove(id int) *Text {
+func (r *TextRenderer) RemoveById(id ActorId) bool {
 	for i, text := range r.texts {
-		if text.GetId() == id {
+		if text.Actor.GetId() == id {
 			r.texts = append(r.texts[:i], r.texts[i+1:]...)
-			return text
+			return true
 		}
 	}
 
-	return nil
+	return false
 }
 
-// Removes all sprites.
-func (r *TextRenderer) Clear() {
-	r.texts = make([]*Text, 0)
+// Removes all texts.
+func (r *TextRenderer) RemoveAll() {
+	r.texts = make([]Text, 0)
 }
 
-// Renders sprites.
-func (r *TextRenderer) Render() {
+// Returns number of texts.
+func (r *TextRenderer) Len() int {
+	return len(r.texts)
+}
+
+func (r *TextRenderer) GetName() string {
+	return text_renderer_name
+}
+
+// Renders texts.
+func (r *TextRenderer) Update(delta float64) {
 	r.Shader.Bind()
-	r.Shader.SendMat3(TEXTRENDERER_ORTHO, *geo.MultMat3(r.Camera.CalcOrtho(), r.CalcModel()))
-	r.Shader.SendUniform1i(TEXTRENDERER_TEX, 0)
-	r.Shader.SendUniform4f(TEXTRENDERER_COLOR, float32(r.Color.X), float32(r.Color.Y), float32(r.Color.Z), float32(r.Color.W))
+	r.Shader.SendMat3(Default_shader_text_ortho, *MultMat3(r.Camera.CalcOrtho(), r.CalcModel()))
+	r.Shader.SendUniform1i(Default_shader_text_tex, 0)
 	r.Font.Tex.Bind()
 
 	for i := range r.texts {
@@ -436,9 +425,9 @@ func (r *TextRenderer) Render() {
 		}
 
 		r.texts[i].vao.Bind()
-		r.Shader.SendMat3(TEXTRENDERER_MODEL, *r.texts[i].CalcModel())
+		r.Shader.SendUniform4f(Default_shader_text_color, float32(r.texts[i].Color.X), float32(r.texts[i].Color.Y), float32(r.texts[i].Color.Z), float32(r.texts[i].Color.W))
+		r.Shader.SendMat3(Default_shader_text_model, *r.texts[i].CalcModel())
 
 		gl.DrawElements(gl.TRIANGLES, r.texts[i].index.Size(), gl.UNSIGNED_INT, nil)
 	}
 }
-*/

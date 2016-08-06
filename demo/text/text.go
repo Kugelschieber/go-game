@@ -2,45 +2,63 @@ package main
 
 import (
 	"github.com/DeKugelschieber/go-game"
+	"github.com/go-gl/gl/v4.5-core/gl"
 )
 
 const (
-	font_path = "src/github.com/DeKugelschieber/go-game/demo/text/assets/font.png"
+	font_path = "src/github.com/DeKugelschieber/go-game/demo/text/assets/victor.png"
+	font_json = "src/github.com/DeKugelschieber/go-game/demo/text/assets/victor.json"
 )
 
 type Game struct{}
 
 func (g *Game) Setup() {
 	// load texture
-	/*_, err := goga.LoadRes(gopher_path)
+	pngLoader, ok := goga.GetLoaderByExt("png").(*goga.PngLoader)
+
+	if !ok {
+		panic("Could not get PNG loader")
+	}
+
+	pngLoader.KeepData = true
+	pngLoader.Filter = gl.NEAREST
+	_, err := goga.LoadRes(font_path)
 
 	if err != nil {
 		panic(err)
 	}
 
-	// create sprite
-	tex, err := goga.GetTex("gopher.png")
+	pngLoader.KeepData = false
+	pngLoader.Filter = gl.LINEAR
+
+	// create font
+	tex, err := goga.GetTex("victor.png")
 
 	if err != nil {
 		panic(err)
 	}
 
-	sprite := goga.NewSprite(tex)
-	renderer, ok := goga.GetSystemByName("spriteRenderer").(*goga.SpriteRenderer)
+	font := goga.NewFont(tex, 16)
+
+	if err := font.FromJson(font_json, true); err != nil {
+		panic(err)
+	}
+
+	// setup renderer
+	renderer, ok := goga.GetSystemByName("textRenderer").(*goga.TextRenderer)
 
 	if !ok {
 		panic("Could not find renderer")
 	}
 
-	renderer.Add(sprite.Actor, sprite.Pos2D, sprite.Tex)
+	renderer.Font = font
 
-	culling, ok := goga.GetSystemByName("culling2d").(*goga.Culling2D)
-
-	if !ok {
-		panic("Could not find culling")
-	}
-
-	culling.Add(sprite.Actor, sprite.Pos2D)*/
+	// create and add text
+	text := goga.NewText(font, "Hello, World!_")
+	text.Size = goga.Vec2{16, 16}
+	text.Pos = goga.Vec2{20, 20}
+	renderer.Prepare(text)
+	renderer.Add(text.Actor, text.Pos2D, text.TextComponent)
 }
 
 func (g *Game) Update(delta float64) {}

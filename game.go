@@ -230,6 +230,7 @@ func initGoga(width, height int) {
 	AddSystem(NewModelRenderer(nil, nil, false))
 	AddSystem(NewCulling2D(0, 0, width, height))
 	AddSystem(NewKeyframeRenderer(nil, nil))
+	AddSystem(NewTextRenderer(nil, nil, nil)) // font must be set outside!
 }
 
 func cleanup() {
