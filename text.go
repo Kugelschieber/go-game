@@ -414,6 +414,10 @@ func (r *TextRenderer) GetName() string {
 
 // Renders texts.
 func (r *TextRenderer) Update(delta float64) {
+	if r.Font == nil {
+		return
+	}
+
 	r.Shader.Bind()
 	r.Shader.SendMat3(Default_shader_text_ortho, *MultMat3(r.Camera.CalcOrtho(), r.CalcModel()))
 	r.Shader.SendUniform1i(Default_shader_text_tex, 0)

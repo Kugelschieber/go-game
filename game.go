@@ -2,7 +2,7 @@ package goga
 
 import (
 	"github.com/go-gl/gl/v4.5-core/gl"
-	"github.com/go-gl/glfw/v3.1/glfw"
+	"github.com/go-gl/glfw/v3.2/glfw"
 	"log"
 	"math"
 	"runtime"
@@ -29,6 +29,9 @@ type RunOptions struct {
 	SetViewportOnResize bool
 	ResizeCallbackFunc  ResizeCallback
 	ExitOnClose         bool
+	RefreshRate         int
+	Fullscreen          bool
+	MonitorId           uint // index
 }
 
 // Main game object.
@@ -88,30 +91,50 @@ func Run(game Game, options *RunOptions) {
 	title := default_title
 	exitOnClose := default_exit_on_close
 
-	if options != nil && options.Width > 0 {
-		width = options.Width
-	}
-
-	if options != nil && options.Height > 0 {
-		height = options.Height
-	}
-
-	if options != nil && len(options.Title) > 0 {
-		title = options.Title
-	}
-
 	if options != nil {
+		if options.Width > 0 {
+			width = options.Width
+		}
+
+		if options.Height > 0 {
+			height = options.Height
+		}
+
+		if len(options.Title) > 0 {
+			title = options.Title
+		}
+
 		exitOnClose = options.ExitOnClose
+
+		if !options.Resizable {
+			glfw.WindowHint(glfw.Resizable, glfw.False)
+		}
 	}
 
-	if options != nil && !options.Resizable {
-		glfw.WindowHint(glfw.Resizable, glfw.False)
+	var monitor *glfw.Monitor
+
+	if options != nil && options.Fullscreen {
+		monitors := glfw.GetMonitors()
+
+		if int(options.MonitorId) < len(monitors) {
+			monitor = monitors[options.MonitorId]
+		}
 	}
 
-	wnd, err := glfw.CreateWindow(int(width), int(height), title, nil, nil)
+	if monitor != nil {
+		videoMode := monitor.GetVideoMode()
+		width = uint32(videoMode.Width)
+		height = uint32(videoMode.Height)
+	}
+
+	wnd, err := glfw.CreateWindow(int(width), int(height), title, monitor, nil)
 
 	if err != nil {
 		panic("Error creating GLFW window: " + err.Error())
+	}
+
+	if options != nil && options.RefreshRate != 0 {
+		glfw.WindowHint(glfw.RefreshRate, options.RefreshRate)
 	}
 
 	// window event handlers

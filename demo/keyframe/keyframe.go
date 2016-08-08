@@ -55,6 +55,7 @@ func main() {
 	options := goga.RunOptions{ClearColor: goga.Vec4{0, 0, 0, 0},
 		Resizable:           true,
 		SetViewportOnResize: true,
-		ExitOnClose:         true}
+		ExitOnClose:         true,
+		Fullscreen:          true}
 	goga.Run(&game, &options)
 }
