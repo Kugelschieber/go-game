@@ -181,7 +181,7 @@ func Run(game Game, options *RunOptions) {
 	delta := time.Duration(0)
 	var deltaSec float64
 
-	for true {
+	for {
 		if !running || exitOnClose && wnd.ShouldClose() {
 			cleanup()
 			return
