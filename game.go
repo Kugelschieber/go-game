@@ -1,7 +1,7 @@
 package goga
 
 import (
-	"github.com/go-gl/gl/v4.5-core/gl"
+	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
 	"log"
 	"math"
@@ -58,7 +58,8 @@ var (
 )
 
 func init() {
-	// GL functions must be called from main thread.
+	// GL functions must be called from main thread,
+	// so we disable multithreading by the runtime here.
 	log.Print("Locking OS thread")
 	runtime.LockOSThread()
 }
@@ -154,6 +155,8 @@ func Run(game Game, options *RunOptions) {
 		}
 	})
 
+	initInput(wnd)
+
 	// make GL context current
 	wnd.MakeContextCurrent()
 
@@ -178,8 +181,8 @@ func Run(game Game, options *RunOptions) {
 	delta := time.Duration(0)
 	var deltaSec float64
 
-	for running {
-		if exitOnClose && wnd.ShouldClose() {
+	for true {
+		if !running || exitOnClose && wnd.ShouldClose() {
 			cleanup()
 			return
 		}

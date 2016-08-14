@@ -2,7 +2,7 @@ package goga
 
 import (
 	"errors"
-	"github.com/go-gl/gl/v4.5-core/gl"
+	"github.com/go-gl/gl/v3.2-core/gl"
 	"log"
 	"strings"
 )

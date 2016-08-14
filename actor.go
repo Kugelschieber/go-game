@@ -1,7 +1,5 @@
 package goga
 
-import ()
-
 // An actor ID is a unique integer,
 // which can be used to reference an actor.
 type ActorId uint64
