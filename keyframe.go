@@ -14,44 +14,6 @@ type Keyframe struct {
 	Min, Max Vec2
 }
 
-// A set of keyframes making up an animation.
-type KeyframeSet struct {
-	Keyframes []Keyframe
-}
-
-// Keyframe animation component.
-// It has a start and an end frame, a play speed and option to loop.
-type KeyframeAnimation struct {
-	Start, End    int
-	Loop          bool
-	Speed         float64
-	Current       int
-	Interpolation float64
-}
-
-// An animated sprite is a sprite with keyframe animation information.
-// It will be updated and rendered by the KeyframeRenderer.
-type AnimatedSprite struct {
-	*Actor
-	*Pos2D
-	*Tex
-	*KeyframeSet
-	*KeyframeAnimation
-}
-
-// The keyframe renderer renders animated sprites.
-// It has a 2D position component, to move all sprites at once.
-type KeyframeRenderer struct {
-	Pos2D
-
-	Shader *Shader
-	Camera *Camera
-
-	sprites       []AnimatedSprite
-	index, vertex *VBO
-	vao           *VAO
-}
-
 // Creates a new single keyframe with texture VBO.
 func NewKeyframe(min, max Vec2) *Keyframe {
 	keyframe := &Keyframe{Min: min, Max: max}
@@ -74,6 +36,11 @@ func NewKeyframe(min, max Vec2) *Keyframe {
 	return keyframe
 }
 
+// A set of keyframes making up an animation.
+type KeyframeSet struct {
+	Keyframes []Keyframe
+}
+
 // Creates a new empty keyframe set with given size.
 func NewKeyframeSet() *KeyframeSet {
 	set := &KeyframeSet{}
@@ -88,9 +55,29 @@ func (s *KeyframeSet) Add(frame *Keyframe) int {
 	return len(s.Keyframes)
 }
 
+// Keyframe animation component.
+// It has a start and an end frame, a play speed and option to loop.
+type KeyframeAnimation struct {
+	Start, End    int
+	Loop          bool
+	Speed         float64
+	Current       int
+	Interpolation float64
+}
+
 // Creates a new keyframe animation with given start, end and loop.
 func NewKeyframeAnimation(start, end int, loop bool, speed float64) *KeyframeAnimation {
 	return &KeyframeAnimation{start, end, loop, speed, 0, 0}
+}
+
+// An animated sprite is a sprite with keyframe animation information.
+// It will be updated and rendered by the KeyframeRenderer.
+type AnimatedSprite struct {
+	*Actor
+	*Pos2D
+	*Tex
+	*KeyframeSet
+	*KeyframeAnimation
 }
 
 // Creates a new animated sprite.
@@ -112,6 +99,19 @@ func NewAnimatedSprite(tex *Tex, set *KeyframeSet, width, height int) *AnimatedS
 	CheckGLError()
 
 	return sprite
+}
+
+// The keyframe renderer renders animated sprites.
+// It has a 2D position component, to move all sprites at once.
+type KeyframeRenderer struct {
+	Pos2D
+
+	Shader *Shader
+	Camera *Camera
+
+	sprites       []AnimatedSprite
+	index, vertex *VBO
+	vao           *VAO
 }
 
 // Creates a new keyframe renderer using given shader and camera.

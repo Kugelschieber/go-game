@@ -1,5 +1,9 @@
 package goga
 
+var (
+	actorIdGen = ActorId(0)
+)
+
 // An actor ID is a unique integer,
 // which can be used to reference an actor.
 type ActorId uint64
@@ -9,10 +13,6 @@ type ActorId uint64
 type Actor struct {
 	id ActorId
 }
-
-var (
-	actorIdGen = ActorId(0)
-)
 
 // Creates a new basic actor with unique ID.
 func NewActor() *Actor {

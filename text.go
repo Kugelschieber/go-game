@@ -32,36 +32,6 @@ type Font struct {
 	chars            []character
 }
 
-// Renderable text component.
-// Use together with Text and create using NewText().
-type TextComponent struct {
-	Color Vec4
-
-	text                    string
-	bounds                  Vec2
-	index, vertex, texCoord *VBO
-	vao                     *VAO
-}
-
-// Text is an actor representing text rendered as texture mapped font.
-// Each Text has a position and its own buffers.
-type Text struct {
-	*Actor
-	*Pos2D
-	*TextComponent
-}
-
-// The text renderer is a system rendering 2D texture mapped font.
-// It has a 2D position component, to move all texts at once.
-type TextRenderer struct {
-	Pos2D
-
-	Shader *Shader
-	Camera *Camera
-	Font   *Font
-	texts  []Text
-}
-
 // Creates a new font for given texture.
 // The tile size specifies the size of one character tile on texture.
 // Characters must be added afterwards.
@@ -76,47 +46,6 @@ func NewFont(tex *Tex, tileSize float64) *Font {
 	font.chars = make([]character, 0)
 
 	return &font
-}
-
-// Returns a new renderable text object.
-func NewText(font *Font, textStr string) *Text {
-	text := Text{}
-	text.Actor = NewActor()
-	text.Pos2D = NewPos2D()
-	text.TextComponent = &TextComponent{}
-	text.index = NewVBO(gl.ELEMENT_ARRAY_BUFFER)
-	text.vertex = NewVBO(gl.ARRAY_BUFFER)
-	text.texCoord = NewVBO(gl.ARRAY_BUFFER)
-	text.vao = NewVAO()
-	text.SetText(font, textStr)
-	text.Color = Vec4{1, 1, 1, 1}
-	text.Size = Vec2{1, 1}
-	text.Scale = Vec2{1, 1}
-	text.Visible = true
-
-	return &text
-}
-
-// Creates a new text renderer using given shader, camera and font.
-// If shader and/or camera are nil, the default one will be used.
-func NewTextRenderer(shader *Shader, camera *Camera, font *Font) *TextRenderer {
-	if shader == nil {
-		shader = DefaultTextShader
-	}
-
-	if camera == nil {
-		camera = DefaultCamera
-	}
-
-	renderer := &TextRenderer{}
-	renderer.Shader = shader
-	renderer.Camera = camera
-	renderer.Font = font
-	renderer.texts = make([]Text, 0)
-	renderer.Size = Vec2{1, 1}
-	renderer.Scale = Vec2{1, 1}
-
-	return renderer
 }
 
 // Loads characters from JSON file.
@@ -229,12 +158,50 @@ func (f *Font) getChar(char byte) *character {
 	return nil
 }
 
+// Renderable text component.
+// Use together with Text and create using NewText().
+type TextComponent struct {
+	Color Vec4
+
+	text                    string
+	bounds                  Vec2
+	index, vertex, texCoord *VBO
+	vao                     *VAO
+}
+
 // Deletes GL buffers bound to this text component.
 func (t *TextComponent) Drop() {
 	t.index.Drop()
 	t.vertex.Drop()
 	t.texCoord.Drop()
 	t.vao.Drop()
+}
+
+// Text is an actor representing text rendered as texture mapped font.
+// Each Text has a position and its own buffers.
+type Text struct {
+	*Actor
+	*Pos2D
+	*TextComponent
+}
+
+// Returns a new renderable text object.
+func NewText(font *Font, textStr string) *Text {
+	text := Text{}
+	text.Actor = NewActor()
+	text.Pos2D = NewPos2D()
+	text.TextComponent = &TextComponent{}
+	text.index = NewVBO(gl.ELEMENT_ARRAY_BUFFER)
+	text.vertex = NewVBO(gl.ARRAY_BUFFER)
+	text.texCoord = NewVBO(gl.ARRAY_BUFFER)
+	text.vao = NewVAO()
+	text.SetText(font, textStr)
+	text.Color = Vec4{1, 1, 1, 1}
+	text.Size = Vec2{1, 1}
+	text.Scale = Vec2{1, 1}
+	text.Visible = true
+
+	return &text
 }
 
 // Sets the given string as text and (re)creates buffers.
@@ -343,6 +310,39 @@ func (t *Text) GetText() string {
 // Returns bounds of text, which is the size of characters.
 func (t *Text) GetBounds() Vec2 {
 	return Vec2{t.bounds.X * t.Size.X * t.Scale.X, t.bounds.Y * t.Size.Y * t.Scale.Y}
+}
+
+// The text renderer is a system rendering 2D texture mapped font.
+// It has a 2D position component, to move all texts at once.
+type TextRenderer struct {
+	Pos2D
+
+	Shader *Shader
+	Camera *Camera
+	Font   *Font
+	texts  []Text
+}
+
+// Creates a new text renderer using given shader, camera and font.
+// If shader and/or camera are nil, the default one will be used.
+func NewTextRenderer(shader *Shader, camera *Camera, font *Font) *TextRenderer {
+	if shader == nil {
+		shader = DefaultTextShader
+	}
+
+	if camera == nil {
+		camera = DefaultCamera
+	}
+
+	renderer := &TextRenderer{}
+	renderer.Shader = shader
+	renderer.Camera = camera
+	renderer.Font = font
+	renderer.texts = make([]Text, 0)
+	renderer.Size = Vec2{1, 1}
+	renderer.Scale = Vec2{1, 1}
+
+	return renderer
 }
 
 // Prepares given text for rendering.

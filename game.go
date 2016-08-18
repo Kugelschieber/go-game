@@ -16,6 +16,20 @@ const (
 	default_exit_on_close = true
 )
 
+var (
+	running        = true
+	clearColor     = Vec4{}
+	clearBuffer    []uint32
+	viewportWidth  int
+	viewportHeight int
+
+	// Default resources
+	DefaultCamera     *Camera
+	Default2DShader   *Shader
+	Default3DShader   *Shader
+	DefaultTextShader *Shader
+)
+
 // If set in RunOptions, the function will be called on window resize.
 type ResizeCallback func(width, height int)
 
@@ -42,20 +56,6 @@ type Game interface {
 	Setup()
 	Update(float64)
 }
-
-var (
-	running        = true
-	clearColor     = Vec4{}
-	clearBuffer    []uint32
-	viewportWidth  int
-	viewportHeight int
-
-	// Default resources
-	DefaultCamera     *Camera
-	Default2DShader   *Shader
-	Default3DShader   *Shader
-	DefaultTextShader *Shader
-)
 
 func init() {
 	// GL functions must be called from main thread,

@@ -4,6 +4,11 @@ import (
 	"log"
 )
 
+var (
+	scenes      []Scene
+	activeScene Scene
+)
+
 // A scene used to switch between game states.
 // The Cleanup() method is called when a scene is removed
 // or the program is stopped. It can be used to cleanup open resources
@@ -18,11 +23,6 @@ type Scene interface {
 	Resize(int, int)
 	GetName() string
 }
-
-var (
-	scenes      []Scene
-	activeScene Scene
-)
 
 // Adds a scene to game.
 // Returns false if the scene exists already.

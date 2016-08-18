@@ -2,6 +2,10 @@ package goga
 
 import ()
 
+var (
+	systems []System
+)
+
 // A system provides logic for actors satisfying required components.
 // They are automatically updated on each frame.
 // When a system is removed from systems, the Cleanup() method will be called.
@@ -16,10 +20,6 @@ type System interface {
 	Len() int
 	GetName() string
 }
-
-var (
-	systems []System
-)
 
 // Adds a system to the game.
 // Returns false if the system exists already.
