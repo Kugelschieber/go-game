@@ -423,15 +423,15 @@ func (r *TextRenderer) Update(delta float64) {
 	r.Shader.SendUniform1i(Default_shader_text_tex, 0)
 	r.Font.Tex.Bind()
 
-	for i := range r.texts {
-		if !r.texts[i].Visible {
+	for _, text := range r.texts {
+		if !text.Visible {
 			continue
 		}
 
-		r.texts[i].vao.Bind()
-		r.Shader.SendUniform4f(Default_shader_text_color, float32(r.texts[i].Color.X), float32(r.texts[i].Color.Y), float32(r.texts[i].Color.Z), float32(r.texts[i].Color.W))
-		r.Shader.SendMat3(Default_shader_text_model, *r.texts[i].CalcModel())
+		text.vao.Bind()
+		r.Shader.SendUniform4f(Default_shader_text_color, float32(text.Color.X), float32(text.Color.Y), float32(text.Color.Z), float32(text.Color.W))
+		r.Shader.SendMat3(Default_shader_text_model, *text.CalcModel())
 
-		gl.DrawElements(gl.TRIANGLES, r.texts[i].index.Size(), gl.UNSIGNED_INT, nil)
+		gl.DrawElements(gl.TRIANGLES, text.index.Size(), gl.UNSIGNED_INT, nil)
 	}
 }

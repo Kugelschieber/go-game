@@ -140,17 +140,17 @@ func (s *SpriteRenderer) Update(delta float64) {
 	s.vao.Bind()
 	var tid uint32
 
-	for i := range s.sprites {
-		if !s.sprites[i].Visible {
+	for _, sprite := range s.sprites {
+		if !sprite.Visible {
 			continue
 		}
 
-		s.Shader.SendMat3(Default_shader_2D_model, *s.sprites[i].CalcModel())
+		s.Shader.SendMat3(Default_shader_2D_model, *sprite.CalcModel())
 
 		// prevent texture switching when not neccessary
-		if tid != s.sprites[i].Tex.GetId() {
-			tid = s.sprites[i].Tex.GetId()
-			s.sprites[i].Tex.Bind()
+		if tid != sprite.Tex.GetId() {
+			tid = sprite.Tex.GetId()
+			sprite.Tex.Bind()
 		}
 
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, nil)

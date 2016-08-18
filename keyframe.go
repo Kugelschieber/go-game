@@ -206,22 +206,22 @@ func (s *KeyframeRenderer) GetName() string {
 // Updates animation state and renders sprites.
 func (s *KeyframeRenderer) Update(delta float64) {
 	// update animation state
-	for i := range s.sprites {
-		if s.sprites[i].KeyframeAnimation == nil {
+	for _, sprite := range s.sprites {
+		if sprite.KeyframeAnimation == nil {
 			continue
 		}
 
-		s.sprites[i].Interpolation += delta * s.sprites[i].KeyframeAnimation.Speed
+		sprite.Interpolation += delta * sprite.KeyframeAnimation.Speed
 
-		if s.sprites[i].Interpolation > 1 {
-			s.sprites[i].Interpolation = 0
-			s.sprites[i].Current++
+		if sprite.Interpolation > 1 {
+			sprite.Interpolation = 0
+			sprite.Current++
 
-			if s.sprites[i].Current > s.sprites[i].KeyframeAnimation.End {
-				if s.sprites[i].KeyframeAnimation.Loop {
-					s.sprites[i].Current = s.sprites[i].KeyframeAnimation.Start
+			if sprite.Current > sprite.KeyframeAnimation.End {
+				if sprite.KeyframeAnimation.Loop {
+					sprite.Current = sprite.KeyframeAnimation.Start
 				} else {
-					s.sprites[i].Current = s.sprites[i].KeyframeAnimation.End
+					sprite.Current = sprite.KeyframeAnimation.End
 				}
 			}
 		}
@@ -233,17 +233,17 @@ func (s *KeyframeRenderer) Update(delta float64) {
 	s.Shader.SendUniform1i(Default_shader_2D_tex, 0)
 	s.vao.Bind()
 
-	for i := range s.sprites {
-		if !s.sprites[i].Visible {
+	for _, sprite := range s.sprites {
+		if !sprite.Visible {
 			continue
 		}
 
-		texCoord := s.sprites[i].KeyframeSet.Keyframes[s.sprites[i].Current].texCoord
+		texCoord := sprite.KeyframeSet.Keyframes[sprite.Current].texCoord
 		texCoord.Bind()
 		texCoord.AttribPointer(s.Shader.GetAttribLocation(Default_shader_2D_texcoord_attrib), 2, gl.FLOAT, false, 0)
 
-		s.Shader.SendMat3(Default_shader_2D_model, *s.sprites[i].CalcModel())
-		s.sprites[i].Tex.Bind()
+		s.Shader.SendMat3(Default_shader_2D_model, *sprite.CalcModel())
+		sprite.Tex.Bind()
 
 		gl.DrawElements(gl.TRIANGLES, 6, gl.UNSIGNED_INT, nil)
 	}

@@ -174,20 +174,20 @@ func (s *ModelRenderer) Update(delta float64) {
 
 	var tid uint32
 
-	for i := range s.models {
-		if !s.models[i].Visible {
+	for _, model := range s.models {
+		if !model.Visible {
 			continue
 		}
 
-		s.Shader.SendMat4(Default_shader_3D_model, *s.models[i].CalcModel())
-		s.models[i].Vao.Bind()
+		s.Shader.SendMat4(Default_shader_3D_model, *model.CalcModel())
+		model.Vao.Bind()
 
 		// prevent texture switching when not neccessary
-		if tid != s.models[i].Tex.GetId() {
-			tid = s.models[i].Tex.GetId()
-			s.models[i].Tex.Bind()
+		if tid != model.Tex.GetId() {
+			tid = model.Tex.GetId()
+			model.Tex.Bind()
 		}
 
-		gl.DrawElements(gl.TRIANGLES, s.models[i].Index.Size(), gl.UNSIGNED_INT, nil)
+		gl.DrawElements(gl.TRIANGLES, model.Index.Size(), gl.UNSIGNED_INT, nil)
 	}
 }

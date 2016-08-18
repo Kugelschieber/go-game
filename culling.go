@@ -80,14 +80,14 @@ func (c *Culling2D) GetName() string {
 
 // Updates visibility of all contained sprites.
 func (c *Culling2D) Update(delta float64) {
-	for i := range c.cullables {
-		if c.cullables[i].Pos.X > c.viewport.Z ||
-			c.cullables[i].Pos.X+c.cullables[i].Size.X < c.viewport.X ||
-			c.cullables[i].Pos.Y > c.viewport.W ||
-			c.cullables[i].Pos.Y+c.cullables[i].Size.Y < c.viewport.Y {
-			c.cullables[i].Visible = false
+	for _, cullable := range c.cullables {
+		if cullable.Pos.X > c.viewport.Z ||
+			cullable.Pos.X+cullable.Size.X < c.viewport.X ||
+			cullable.Pos.Y > c.viewport.W ||
+			cullable.Pos.Y+cullable.Size.Y < c.viewport.Y {
+			cullable.Visible = false
 		} else {
-			c.cullables[i].Visible = true
+			cullable.Visible = true
 		}
 	}
 }
