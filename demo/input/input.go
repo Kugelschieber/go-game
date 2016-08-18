@@ -33,20 +33,10 @@ func (g *Game) Setup() {
 	sprite.Size.X = sprite.Size.X / 4
 	sprite.Size.Y = sprite.Size.Y / 4
 	g.sprite = sprite
-	renderer, ok := goga.GetSystemByName("spriteRenderer").(*goga.SpriteRenderer)
-
-	if !ok {
-		panic("Could not find renderer")
-	}
-
+	renderer := goga.GetSpriteRenderer()
 	renderer.Add(sprite.Actor, sprite.Pos2D, sprite.Tex)
 
-	culling, ok := goga.GetSystemByName("culling2d").(*goga.Culling2D)
-
-	if !ok {
-		panic("Could not find culling")
-	}
-
+	culling := goga.GetCulling2DSystem()
 	culling.Add(sprite.Actor, sprite.Pos2D)
 
 	// register input listeners

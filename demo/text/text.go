@@ -45,12 +45,7 @@ func (g *Game) Setup() {
 	}
 
 	// setup renderer
-	renderer, ok := goga.GetSystemByName("textRenderer").(*goga.TextRenderer)
-
-	if !ok {
-		panic("Could not find renderer")
-	}
-
+	renderer := goga.GetTextRenderer()
 	renderer.Font = font
 
 	// create and add text

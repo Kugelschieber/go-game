@@ -36,12 +36,7 @@ func (g *Game) Setup() {
 	mesh := goga.NewMesh(ply.IndexBuffer, ply.VertexBuffer, ply.TexCoordBuffer)
 
 	model := goga.NewModel(mesh, tex)
-	renderer, ok := goga.GetSystemByName("modelRenderer").(*goga.ModelRenderer)
-
-	if !ok {
-		panic("Could not find renderer")
-	}
-
+	renderer := goga.GetModelRenderer()
 	renderer.Prepare(model)
 	renderer.Add(model.Actor, model.Pos3D, model.Tex, model.Mesh)
 	g.model = model

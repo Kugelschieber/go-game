@@ -39,12 +39,7 @@ func (g *Game) Setup() {
 	sprite.KeyframeAnimation = goga.NewKeyframeAnimation(0, 7, true, 20)
 
 	// add to renderer
-	renderer, ok := goga.GetSystemByName("keyframeRenderer").(*goga.KeyframeRenderer)
-
-	if !ok {
-		panic("Could not find renderer")
-	}
-
+	renderer := goga.GetKeyframeRenderer()
 	renderer.Add(sprite.Actor, sprite.Pos2D, sprite.Tex, sprite.KeyframeSet, sprite.KeyframeAnimation)
 }
 
